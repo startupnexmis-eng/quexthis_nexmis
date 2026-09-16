@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXMIS | Literacia Política</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Mono&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="logo">NEXMIS<small>LITERACIA POLÍTICA</small></div>
+  <nav>
+    <a href="index.html">INÍCIO</a>
+    <a href="resultado.html">ANÁLISES</a>
+  </nav>
+</header>
+
+<main>
+<section>
+  <div class="kicker">01 — PESQUISA DE PERSPECTIVAS</div>
+  <h1>Compreender.<br>Analisar.<br>Refletir.</h1>
+  <div class="linha"></div>
+  <p class="descricao">
+    Questionário de perspectivas políticas com 27 afirmações e respostas em escala de
+    concordância. Os resultados são apresentados de forma agregada por
+    curso, série e turma.
+  </p>
+  <div class="informacoes">
+    <span>◈ 27 QUESTÕES</span>
+    <span>◈ ANÁLISE POR TURMA</span>
+    <span>◈ RESULTADO INDIVIDUAL</span>
+  </div>
+</section>
+
+<section class="card">
+  <div class="titulo-card">IDENTIFICAÇÃO</div>
+
+  <label for="nome">NOME</label>
+  <input id="nome" type="text" maxlength="80" placeholder="Digite seu nome">
+
+  <label for="curso">CURSO</label>
+  <select id="curso">
+    <option value="">Selecione seu curso</option>
+    <option>Desenvolvimento de Sistemas</option>
+    <option>Eletrotécnica</option>
+  </select>
+
+  <label for="serie">SÉRIE</label>
+  <select id="serie">
+    <option value="">Selecione sua série</option>
+    <option>1º Ano</option>
+    <option>2º Ano</option>
+    <option>3º Ano</option>
+  </select>
+
+  <label for="turma">TURMA</label>
+  <select id="turma">
+    <option value="">Selecione sua turma</option>
+    <option>Turma A</option>
+    <option>Turma B</option>
+  </select>
+
+  <button id="iniciar" type="button">INICIAR QUESTIONÁRIO →</button>
+  <div id="erro" class="erro"></div>
+
+  <div class="aviso">
+    Responda de acordo com o seu próprio posicionamento. Não há respostas
+    certas ou erradas.
+  </div>
+</section>
+</main>
+
+<footer>
+  <span>PROGRAMA DO NEXMIS © 2026</span>
+  <span>LITERACIA · ANÁLISE · CONHECIMENTO</span>
+</footer>
+<script src="api-config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

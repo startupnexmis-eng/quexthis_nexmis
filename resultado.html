@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXMIS | Análises</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="logo">NEXMIS<small>LITERACIA POLÍTICA</small></div>
+  <nav>
+    <a href="index.html">INÍCIO</a>
+    <a href="resultado.html">ANÁLISES</a>
+  </nav>
+</header>
+
+<main class="resultados-container">
+<section>
+  <div class="kicker">03 — PAINEL DE ANÁLISE</div>
+  <h1>Dados.<br>Contexto.<br>Reflexão.</h1>
+  <div class="linha"></div>
+  <p class="descricao">
+    Área restrita para consulta das respostas por curso, série e turma. O resultado indica uma tendência predominante a partir das respostas, não uma identidade política definitiva.
+  </p>
+</section>
+
+<section class="card">
+  <div id="loginResultados">
+    <div class="titulo-card">ACESSO RESTRITO</div>
+    <p class="descricao curto">Digite a senha para acessar os dados da pesquisa.</p>
+    <label for="senha">SENHA</label>
+    <input id="senha" type="password" autocomplete="off" placeholder="Senha de acesso">
+    <button id="entrarResultados" type="button">ACESSAR ANÁLISES →</button>
+    <div id="erroLogin" class="erro"></div>
+  </div>
+
+  <div id="painelResultados" class="hidden">
+    <div class="titulo-card">ANÁLISES</div>
+
+    <div class="filtros">
+      <div>
+        <label for="filtroCurso">CURSO</label>
+        <select id="filtroCurso"></select>
+      </div>
+      <div>
+        <label for="filtroSerie">SÉRIE</label>
+        <select id="filtroSerie"></select>
+      </div>
+      <div>
+        <label for="filtroTurma">TURMA</label>
+        <select id="filtroTurma"></select>
+      </div>
+    </div>
+
+    <div id="resumoGrupo"></div>
+    <section id="graficoTotal" class="grafico-total"></section>
+
+    <div class="acoes-admin">
+      <button id="exportar" type="button">EXPORTAR GRÁFICO TOTAL / PDF</button>
+      <button id="limpar" type="button">LIMPAR TODOS OS DADOS</button>
+    </div>
+    <button id="sairResultados" type="button" class="botao-secundario">SAIR</button>
+  </div>
+</section>
+</main>
+
+<footer>
+  <span>PROGRAMA DO NEXMIS © 2026</span>
+  <span>LITERACIA · ANÁLISE · CONHECIMENTO</span>
+</footer>
+<script src="api-config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

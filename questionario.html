@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXMIS | Pesquisa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Mono&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="logo">NEXMIS<small>LITERACIA POLÍTICA</small></div>
+  <nav>
+    <a href="index.html">INÍCIO</a>
+    <a href="resultado.html">ANÁLISES</a>
+  </nav>
+</header>
+
+<main class="questionario-container">
+<section class="questionario-card">
+  <div class="kicker">02 — QUESTIONÁRIO · 27 AFIRMAÇÕES</div>
+  <h1 class="titulo-questionario">Sua perspectiva.</h1>
+  <div class="linha"></div>
+  <div id="identificacao" class="identificacao"></div>
+
+  <div class="escala-legenda">
+    <span>Discordo totalmente</span>
+    <span>Discordo</span>
+    <span>Nem concordo nem discordo</span>
+    <span>Concordo</span>
+    <span>Concordo totalmente</span>
+  </div>
+
+  <form id="questionario">
+    <div id="perguntas"></div>
+    <div id="erroQuestionario" class="erro"></div>
+    <button type="submit">FINALIZAR QUESTIONÁRIO →</button>
+  </form>
+</section>
+</main>
+
+<footer>
+  <span>PROGRAMA DO NEXMIS © 2026</span>
+  <span>LITERACIA · ANÁLISE · CONHECIMENTO</span>
+</footer>
+<script src="api-config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
