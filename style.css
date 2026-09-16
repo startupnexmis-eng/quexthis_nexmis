@@ -114,3 +114,44 @@ footer{width:min(1150px,92%);margin:auto;padding:25px 0;border-top:1px solid var
 .valores-grafico{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:9px;color:var(--cinza);font-family:"DM Mono",monospace;font-size:8px;line-height:1.5}.valores-grafico b{color:var(--branco)}
 button:disabled{opacity:.55;cursor:wait;transform:none!important}
 @media print{.modo-exportacao .grafico-total{display:block}.modo-exportacao #resumoGrupo,.modo-exportacao .filtros,.modo-exportacao .titulo-card{display:none!important}.modo-exportacao main>section:first-child{display:none!important}.modo-exportacao .card{padding:20px}.grafico-turma-topo{color:#222}.valores-grafico b{color:#111}}
+
+/* ===== Ajustes de celular: mesma aparência, mais legível e acessível ===== */
+@media(max-width:800px){
+  /* 16px evita que Safari/Chrome no iOS deem zoom automático ao tocar no campo */
+  select,input{font-size:16px}
+  /* alvo de toque um pouco maior nos rádios do questionário, sem mudar o layout */
+  .alternativa{padding:16px 14px}
+  .alternativa input{transform:scale(1.2)}
+  /* textos em caixa alta/mono muito pequenos ficavam difíceis de ler no celular */
+  .informacoes span{font-size:10px}
+  .aviso,.erro{font-size:12px;line-height:1.7}
+  .identificacao{font-size:11px;line-height:1.9}
+  .resultado-legenda{font-size:10px}
+  .legenda-grafico{font-size:9px}
+  .grafico-turma-topo span{font-size:10px}
+  .valores-grafico span{font-size:9px}
+  .valores-grafico b{font-size:10px}
+  .pessoa-card small,.resultado-final-nota{font-size:11px}
+  footer{font-size:9px;text-align:center;gap:10px}
+}
+
+@media(max-width:420px){
+  .card,.questionario-card{padding:24px 20px}
+  h1{font-size:42px}
+  .titulo-questionario{font-size:38px}
+  .pergunta h2{font-size:23px}
+  .resultado-final-estilo{font-size:32px}
+}
+
+/* Foco visível para quem navega por teclado ou leitor de tela (qualquer tela) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible{
+  outline:2px solid var(--prata);
+  outline-offset:2px;
+}
+.alternativa:has(input:focus-visible){
+  outline:2px solid var(--prata);
+  outline-offset:2px;
+}
