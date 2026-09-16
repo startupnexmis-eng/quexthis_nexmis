@@ -47,10 +47,49 @@ async function api(url, options = {}) {
   return corpo;
 }
 
+// Marca local de "já respondeu" — usa localStorage (sobrevive ao fechar a aba,
+// diferente do sessionStorage) para impedir que a mesma pessoa, no mesmo
+// navegador, reabra o questionário. É uma trava de conveniência para o
+// usuário; quem garante mesmo que ninguém responda duas vezes é o banco de
+// dados no servidor (ver backend/app.py).
+const CHAVE_JA_RESPONDEU = "nexmis_ja_respondeu";
+
+function jaRespondeuNesteDispositivo() {
+  return localStorage.getItem(CHAVE_JA_RESPONDEU) === "1";
+}
+
+function marcarComoRespondido() {
+  localStorage.setItem(CHAVE_JA_RESPONDEU, "1");
+}
+
+function bloquearNovaTentativa() {
+  const secaoCard = document.querySelector(".card");
+  const erro = document.getElementById("erro");
+  if (!secaoCard) return;
+  secaoCard
+    .querySelectorAll("input, select, button")
+    .forEach(campo => (campo.disabled = true));
+  if (erro) {
+    erro.textContent =
+      "Este dispositivo já foi usado para responder ao questionário. Cada pessoa pode participar apenas uma vez.";
+    erro.setAttribute("role", "alert");
+  }
+}
+
 function iniciarPesquisa() {
   const botao = document.getElementById("iniciar");
   if (!botao) return;
+
+  if (jaRespondeuNesteDispositivo()) {
+    bloquearNovaTentativa();
+    return;
+  }
+
   botao.addEventListener("click", () => {
+    if (jaRespondeuNesteDispositivo()) {
+      bloquearNovaTentativa();
+      return;
+    }
     const identificacao = {
       nome: document.getElementById("nome").value.trim(),
       curso: document.getElementById("curso").value,
@@ -71,6 +110,7 @@ function iniciarPesquisa() {
 async function montarQuestionario() {
   const container = document.getElementById("perguntas");
   if (!container) return;
+  if (jaRespondeuNesteDispositivo()) { location.href = "index.html"; return; }
   const identificacao = JSON.parse(sessionStorage.getItem("nexmis_identificacao") || "null");
   if (!identificacao) { location.href = "index.html"; return; }
 
@@ -143,8 +183,12 @@ async function finalizarQuestionario(event) {
     });
 
     sessionStorage.removeItem("nexmis_identificacao");
+    marcarComoRespondido();
     mostrarResultadoIndividual(resultado);
   } catch (e) {
+    if (e.status === 409) {
+      marcarComoRespondido();
+    }
     erro.textContent = e.message;
     botao.disabled = false;
     botao.textContent = "FINALIZAR QUESTIONÁRIO →";
