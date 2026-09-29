@@ -38,34 +38,54 @@
   </div>
 
   <div id="painelResultados" class="hidden">
-    <div class="titulo-card">ANÁLISES</div>
+    <div class="abas" role="tablist" aria-label="Seções do painel do analista">
+      <button id="abaAnalise" type="button" class="aba ativa" role="tab" aria-selected="true" aria-controls="secaoAnalise">ANÁLISE</button>
+      <button id="abaHistorico" type="button" class="aba" role="tab" aria-selected="false" aria-controls="secaoHistorico">HISTÓRICO</button>
+    </div>
 
-    <div class="filtros">
-      <div>
-        <label for="filtroCurso">CURSO</label>
-        <select id="filtroCurso"></select>
+    <div id="secaoAnalise" role="tabpanel">
+      <div class="titulo-card">ANÁLISES</div>
+
+      <div class="filtros">
+        <div>
+          <label for="filtroCurso">CURSO</label>
+          <select id="filtroCurso"></select>
+        </div>
+        <div>
+          <label for="filtroSerie">SÉRIE</label>
+          <select id="filtroSerie"></select>
+        </div>
+        <div>
+          <label for="filtroTurma">TURMA</label>
+          <select id="filtroTurma"></select>
+        </div>
       </div>
-      <div>
-        <label for="filtroSerie">SÉRIE</label>
-        <select id="filtroSerie"></select>
-      </div>
-      <div>
-        <label for="filtroTurma">TURMA</label>
-        <select id="filtroTurma"></select>
+
+      <div id="resumoGrupo"></div>
+      <section id="graficoTotal" class="grafico-total"></section>
+
+      <div class="acoes-admin">
+        <button id="exportar" type="button">EXPORTAR GRÁFICO TOTAL / PDF</button>
+        <button id="limpar" type="button">LIMPAR TODOS OS DADOS</button>
       </div>
     </div>
 
-    <div id="resumoGrupo"></div>
-    <section id="graficoTotal" class="grafico-total"></section>
-
-    <div class="acoes-admin">
-      <button id="exportar" type="button">EXPORTAR GRÁFICO TOTAL / PDF</button>
-      <button id="limpar" type="button">LIMPAR TODOS OS DADOS</button>
+    <div id="secaoHistorico" class="hidden" role="tabpanel">
+      <div class="titulo-card">HISTÓRICO DE PESQUISAS</div>
+      <p class="descricao curto">
+        Cada combinação de filtros consultada fica registrada aqui. Abra uma pesquisa para
+        voltar à análise, ou apague o histórico (a exclusão exige a senha de acesso).
+      </p>
+      <div id="listaHistorico"></div>
+      <button id="limparHistorico" type="button" class="botao-secundario">APAGAR TODO O HISTÓRICO</button>
     </div>
+
     <button id="sairResultados" type="button" class="botao-secundario">SAIR</button>
   </div>
 </section>
 </main>
+
+<div id="relatorioPDF" aria-hidden="true"></div>
 
 <footer>
   <span>PROGRAMA DO NEXMIS © 2026</span>
