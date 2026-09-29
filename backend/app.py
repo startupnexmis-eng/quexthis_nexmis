@@ -25,6 +25,7 @@ if not ADMIN_PASSWORD:
 if not TOKEN_SECRET or len(TOKEN_SECRET) < 32:
     raise RuntimeError("NEXMIS_TOKEN_SECRET precisa ter pelo menos 32 caracteres.")
 TOKEN_TTL_SECONDS = int(os.getenv("NEXMIS_TOKEN_TTL", "28800"))
+HISTORY_LIMIT = 100
  
 COURSES = {"Desenvolvimento de Sistemas", "Eletrotécnica"}
 SERIES = {"1º Ano", "2º Ano", "3º Ano"}
@@ -84,6 +85,22 @@ def init_db():
         -- ou o armazenamento local tenha sido limpo.
         CREATE UNIQUE INDEX IF NOT EXISTS idx_responses_unica_pessoa
             ON responses(LOWER(TRIM(name)), course, series, class_name);
+
+        -- Histórico de pesquisas feitas pelo analista (combinações de filtros).
+        -- Filtro vazio ('') significa "Todos". Cada combinação aparece uma única vez;
+        -- consultar de novo apenas atualiza a data e o total.
+        CREATE TABLE IF NOT EXISTS search_history (
+            id TEXT PRIMARY KEY,
+            course TEXT NOT NULL DEFAULT '',
+            series TEXT NOT NULL DEFAULT '',
+            class_name TEXT NOT NULL DEFAULT '',
+            total_responses INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_history_filters
+            ON search_history(course, series, class_name);
+        CREATE INDEX IF NOT EXISTS idx_history_created
+            ON search_history(created_at);
         """)
  
  
@@ -130,6 +147,17 @@ def calculate_score(answers: list[int]) -> float:
     return round((total / (len(QUESTIONS) * 2)) * 100, 2)
  
  
+def password_ok(supplied: str) -> bool:
+    # Compara em bytes: hmac.compare_digest com str levanta erro se houver acentos.
+    return hmac.compare_digest((supplied or "").encode("utf-8"), ADMIN_PASSWORD.encode("utf-8"))
+ 
+ 
+def require_password(supplied: str):
+    # 403 (e não 401) para o frontend distinguir "senha errada" de "sessão expirada".
+    if not password_ok(supplied):
+        raise HTTPException(status_code=403, detail="Senha incorreta. Exclusão não autorizada.")
+ 
+ 
 def make_token() -> str:
     payload = {"exp": int(datetime.now(timezone.utc).timestamp()) + TOKEN_TTL_SECONDS, "nonce": secrets.token_hex(8)}
     raw = json.dumps(payload, separators=(",", ":")).encode()
@@ -171,6 +199,10 @@ class LoginIn(BaseModel):
     password: str
  
  
+class ConfirmIn(BaseModel):
+    password: str
+ 
+ 
 @app.get("/api/health")
 def health():
     return {"ok": True, "service": "NEXMIS API"}
@@ -188,7 +220,7 @@ def questions():
  
 @app.post("/api/admin/login")
 def admin_login(data: LoginIn):
-    if not hmac.compare_digest(data.password, ADMIN_PASSWORD):
+    if not password_ok(data.password):
         raise HTTPException(status_code=401, detail="Senha incorreta.")
     return {"token": make_token(), "expires_in": TOKEN_TTL_SECONDS}
  
@@ -262,6 +294,7 @@ def analytics(
     course: Optional[str] = Query(default=None),
     series: Optional[str] = Query(default=None),
     class_name: Optional[str] = Query(default=None),
+    save_history: bool = Query(default=False),
 ):
     where = []
     params = []
@@ -286,11 +319,62 @@ def analytics(
     counts = {cat: sum(g["categories"][cat]["count"] for g in groups) for cat in CATEGORIES}
     overall = {cat: {"count": counts[cat], "percent": round(counts[cat] / total * 100, 1) if total else 0} for cat in CATEGORIES}
  
+    if save_history:
+        record_search(course or "", series or "", class_name or "", total)
+ 
     return {"total_responses": total, "categories": overall, "groups": groups, "filters": filters}
  
  
-@app.delete("/api/responses")
-def delete_all(_: bool = Depends(admin_guard)):
+def record_search(course: str, series: str, class_name: str, total: int):
+    with get_db() as db:
+        db.execute(
+            """INSERT INTO search_history (id, course, series, class_name, total_responses, created_at)
+               VALUES (?, ?, ?, ?, ?, ?)
+               ON CONFLICT(course, series, class_name)
+               DO UPDATE SET total_responses = excluded.total_responses,
+                             created_at = excluded.created_at""",
+            (secrets.token_hex(8), course, series, class_name, total, now_iso()),
+        )
+        # Mantém só as pesquisas mais recentes.
+        db.execute(
+            """DELETE FROM search_history WHERE id NOT IN
+               (SELECT id FROM search_history ORDER BY created_at DESC LIMIT ?)""",
+            (HISTORY_LIMIT,),
+        )
+ 
+ 
+@app.get("/api/admin/history")
+def list_history(_: bool = Depends(admin_guard)):
+    with get_db() as db:
+        rows = db.execute(
+            """SELECT id, course, series, class_name, total_responses, created_at
+               FROM search_history ORDER BY created_at DESC"""
+        ).fetchall()
+    return {"items": [dict(r) for r in rows]}
+ 
+ 
+@app.post("/api/admin/history/delete-all")
+def delete_all_history(data: ConfirmIn, _: bool = Depends(admin_guard)):
+    require_password(data.password)
+    with get_db() as db:
+        deleted = db.execute("DELETE FROM search_history").rowcount
+    return {"deleted": deleted}
+ 
+ 
+@app.post("/api/admin/history/{item_id}/delete")
+def delete_history_item(item_id: str, data: ConfirmIn, _: bool = Depends(admin_guard)):
+    require_password(data.password)
+    with get_db() as db:
+        deleted = db.execute("DELETE FROM search_history WHERE id = ?", (item_id,)).rowcount
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Item do histórico não encontrado.")
+    return {"deleted": deleted}
+ 
+ 
+@app.post("/api/admin/responses/delete-all")
+def delete_all(data: ConfirmIn, _: bool = Depends(admin_guard)):
+    # Além da sessão do analista, exige a senha de acesso novamente.
+    require_password(data.password)
     with get_db() as db:
         deleted = db.execute("DELETE FROM responses").rowcount
     return {"deleted": deleted}
@@ -310,4 +394,3 @@ def static_pages(page: str):
     if target.is_file() and target.suffix.lower() in {".html", ".js", ".css", ".json", ".png", ".jpg", ".jpeg", ".svg", ".ico"}:
         return FileResponse(target)
     raise HTTPException(status_code=404)
- 
