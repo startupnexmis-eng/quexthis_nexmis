@@ -11,10 +11,6 @@
 <body>
 <header>
   <div class="logo">QUEXTHIS<small>QUESTIONÁRIO POLÍTICO</small></div>
-  <nav>
-    <a href="pesquisa.html">PESQUISA</a>
-    <a href="analista.html">ANALISTA</a>
-  </nav>
 </header>
 
 <main class="resultados-container">
@@ -23,7 +19,7 @@
   <h1>Turma.<br>Código.<br>Análise.</h1>
   <div class="linha"></div>
   <p class="descricao">
-    Escolha a turma, mostre o QR Code para os alunos e acompanhe o percentual das respostas.
+    Escolha a turma, passe o código para os alunos e acompanhe o percentual das respostas.
     Ao concluir, exporte o relatório em PDF. Os dados ficam guardados no histórico.
   </p>
 </section>
@@ -70,7 +66,7 @@
           <select id="ano"></select>
         </div>
       </div>
-      <button id="gerar" type="button">GERAR QR CODE →</button>
+      <button id="gerar" type="button">GERAR CÓDIGO →</button>
       <div id="erroNova" class="erro" role="alert" aria-live="polite"></div>
 
       <div id="blocoAndamento" class="hidden">
@@ -96,11 +92,10 @@
 
       <div id="blocoAberta" class="hidden">
         <div class="qr-area">
-          <div class="qr-box" id="qrBox"></div>
           <div class="qr-info">
             <div class="resultado-legenda">CÓDIGO DA PESQUISA</div>
             <div class="codigo-grande" id="detCodigo"></div>
-            <div class="resultado-legenda">Os alunos leem o QR Code ou digitam o código em:</div>
+            <div class="resultado-legenda">Os alunos abrem o endereço abaixo e digitam o código:</div>
             <div class="link-pesquisa" id="detLink"></div>
           </div>
         </div>
@@ -138,8 +133,6 @@
   <span>PROGRAMA DO NEXMIS © 2026</span>
   <span>LITERACIA · ANÁLISE · CONHECIMENTO</span>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>window.QRCode||document.write('<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>')</script>
 <script src="api-config.js"></script>
 <script src="comum.js"></script>
 <script src="analista.js"></script>
