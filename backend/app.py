@@ -7,6 +7,13 @@ import os
 import re
 import secrets
 import sqlite3
+
+try:
+    import psycopg
+    from psycopg.rows import dict_row
+except ImportError:
+    psycopg = None
+    dict_row = None
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
@@ -18,6 +25,8 @@ from pydantic import BaseModel, Field
 
 ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = Path(os.getenv("NEXMIS_DB_PATH", ROOT / "data" / "nexmis.db"))
+DATABASE_URL = os.getenv("NEXMIS_DATABASE_URL") or os.getenv("DATABASE_URL")
+
 QUESTIONS_PATH = ROOT / "questions.json"
 ADMIN_PASSWORD = os.getenv("NEXMIS_ADMIN_PASSWORD")
 TOKEN_SECRET = os.getenv("NEXMIS_TOKEN_SECRET")
@@ -53,8 +62,37 @@ app.add_middleware(
 
 
 # ---------------------------------------------------------------- banco
+class PostgresDB:
+    """Pequeno adaptador para manter o código existente usando '?' nos parâmetros."""
+    def __init__(self, url):
+        self.conn = psycopg.connect(url, row_factory=dict_row, connect_timeout=15)
+
+    def execute(self, sql, params=None):
+        return self.conn.execute(sql.replace("?", "%s"), params or ())
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        try:
+            if exc_type is None:
+                self.conn.commit()
+            else:
+                self.conn.rollback()
+        finally:
+            self.conn.close()
+        return False
+
+
 def get_db():
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    """Abre o banco externo (PostgreSQL) quando DATABASE_URL estiver configurada.
+    Sem DATABASE_URL, mantém SQLite local para facilitar testes no computador.
+    """
+    if DATABASE_URL:
+        if psycopg is None:
+            raise RuntimeError("A dependência psycopg não está instalada.")
+        return PostgresDB(DATABASE_URL)
+
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
@@ -63,46 +101,68 @@ def get_db():
 
 
 def init_db():
+    if DATABASE_URL:
+        if psycopg is None:
+            raise RuntimeError("A dependência psycopg não está instalada.")
+        with psycopg.connect(DATABASE_URL, row_factory=dict_row) as db:
+            db.execute("""
+            CREATE TABLE IF NOT EXISTS sessions (
+                id TEXT PRIMARY KEY,
+                code TEXT NOT NULL,
+                course TEXT NOT NULL,
+                series TEXT NOT NULL,
+                year INTEGER NOT NULL,
+                class_name TEXT NOT NULL DEFAULT '',
+                name TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'aberta',
+                created_at TEXT NOT NULL,
+                concluded_at TEXT
+            )
+            """)
+            db.execute("CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions(status)")
+            db.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_codigo_aberta
+                ON sessions(code) WHERE status = 'aberta'""")
+            db.execute("""
+            CREATE TABLE IF NOT EXISTS session_responses (
+                id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+                name TEXT NOT NULL,
+                answers_json TEXT NOT NULL,
+                score DOUBLE PRECISION NOT NULL,
+                political_side TEXT NOT NULL,
+                government_style TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+            """)
+            db.execute("CREATE INDEX IF NOT EXISTS idx_sr_session ON session_responses(session_id)")
+            db.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_sr_unica_pessoa
+                ON session_responses(session_id, LOWER(TRIM(name)))""")
+            db.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_turma_aberta_v2
+                ON sessions(course, series, class_name) WHERE status = 'aberta'""")
+        return
+
+    # Banco local para testes. No Render, use NEXMIS_DATABASE_URL/DATABASE_URL.
     with get_db() as db:
         db.executescript("""
         CREATE TABLE IF NOT EXISTS sessions (
-            id TEXT PRIMARY KEY,
-            code TEXT NOT NULL,
-            course TEXT NOT NULL,
-            series TEXT NOT NULL,
-            year INTEGER NOT NULL,
-            class_name TEXT NOT NULL DEFAULT '',
-            name TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'aberta',
-            created_at TEXT NOT NULL,
-            concluded_at TEXT
+            id TEXT PRIMARY KEY, code TEXT NOT NULL, course TEXT NOT NULL, series TEXT NOT NULL,
+            year INTEGER NOT NULL, class_name TEXT NOT NULL DEFAULT '', name TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'aberta', created_at TEXT NOT NULL, concluded_at TEXT
         );
         CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions(status);
-        -- O código só precisa ser único enquanto a pesquisa está aberta.
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_codigo_aberta
-            ON sessions(code) WHERE status = 'aberta';
-
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_codigo_aberta ON sessions(code) WHERE status = 'aberta';
         CREATE TABLE IF NOT EXISTS session_responses (
-            id TEXT PRIMARY KEY,
-            session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
-            name TEXT NOT NULL,
-            answers_json TEXT NOT NULL,
-            score REAL NOT NULL,
-            political_side TEXT NOT NULL,
-            government_style TEXT NOT NULL,
-            created_at TEXT NOT NULL
+            id TEXT PRIMARY KEY, session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+            name TEXT NOT NULL, answers_json TEXT NOT NULL, score REAL NOT NULL,
+            political_side TEXT NOT NULL, government_style TEXT NOT NULL, created_at TEXT NOT NULL
         );
         CREATE INDEX IF NOT EXISTS idx_sr_session ON session_responses(session_id);
-        -- Uma resposta por pessoa (nome) em cada pesquisa.
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_sr_unica_pessoa
-            ON session_responses(session_id, LOWER(TRIM(name)));
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_sr_unica_pessoa ON session_responses(session_id, LOWER(TRIM(name)));
         """)
-        # Migração: bancos criados na versão com "ano" ganham a coluna class_name.
         cols = [r["name"] for r in db.execute("PRAGMA table_info(sessions)")]
         if "class_name" not in cols:
             db.execute("ALTER TABLE sessions ADD COLUMN class_name TEXT NOT NULL DEFAULT ''")
         db.execute("DROP INDEX IF EXISTS idx_sessions_turma_aberta")
-        # Só pode existir uma pesquisa aberta por turma (curso + série + turma).
         db.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_turma_aberta_v2
             ON sessions(course, series, class_name) WHERE status = 'aberta'""")
 
@@ -315,7 +375,7 @@ def submit_response(code: str, data: ResponseIn):
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                 (response_id, row["id"], name, json.dumps(data.answers), score, side, style, now_iso()),
             )
-    except sqlite3.IntegrityError:
+    except (sqlite3.IntegrityError, psycopg.IntegrityError if psycopg else sqlite3.IntegrityError):
         raise HTTPException(
             status_code=409,
             detail="Este nome já respondeu à pesquisa desta turma. Cada pessoa pode responder apenas uma vez.",
