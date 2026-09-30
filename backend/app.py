@@ -55,7 +55,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
     allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
     expose_headers=["Content-Disposition"],
 )
@@ -450,6 +450,18 @@ def get_session(session_id: str, _: bool = Depends(admin_guard)):
         row = get_session_or_404(db, session_id)
         stats = session_stats(db, session_id)
     return {**session_public(row), **stats}
+
+
+@app.delete("/api/admin/sessions/{session_id}")
+def delete_session(session_id: str, _: bool = Depends(admin_guard)):
+    """Apaga uma pesquisa concluída e todas as respostas vinculadas a ela."""
+    with get_db() as db:
+        row = get_session_or_404(db, session_id)
+        if row["status"] != "concluida":
+            raise HTTPException(status_code=409, detail="Só é possível apagar pesquisas concluídas.")
+        db.execute("DELETE FROM session_responses WHERE session_id = ?", (session_id,))
+        db.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+    return {"ok": True, "message": "Pesquisa apagada do histórico."}
 
 
 @app.post("/api/admin/sessions/{session_id}/conclude")
