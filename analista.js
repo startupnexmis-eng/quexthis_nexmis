@@ -35,14 +35,6 @@ function formatarData(iso) {
   return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
 
-/* ---------- ano ---------- */
-function preencherAnos() {
-  const atual = new Date().getFullYear();
-  const select = $("ano");
-  select.innerHTML = [atual - 1, atual, atual + 1]
-    .map(a => `<option value="${a}"${a === atual ? " selected" : ""}>${a}</option>`).join("");
-}
-
 /* ---------- abas ---------- */
 function mostrarVista(nome) {
   ["vistaNova", "vistaHistorico", "vistaDetalhe"].forEach(v => $(v).classList.add("hidden"));
@@ -102,9 +94,9 @@ async function carregarHistorico() {
 async function gerarPesquisa() {
   const erro = $("erroNova");
   erro.textContent = "";
-  const curso = $("curso").value, serie = $("serie").value, ano = Number($("ano").value);
-  if (!curso || !serie || !ano) {
-    erro.textContent = "Selecione curso, série e ano antes de gerar o código.";
+  const curso = $("curso").value, serie = $("serie").value, turma = $("turma").value;
+  if (!curso || !serie || !turma) {
+    erro.textContent = "Selecione curso, série e turma antes de gerar o código.";
     return;
   }
   const botao = $("gerar");
@@ -112,7 +104,7 @@ async function gerarPesquisa() {
   try {
     const sessao = await apiAdmin("/api/admin/sessions", {
       method: "POST",
-      body: JSON.stringify({ course: curso, series: serie, year: ano })
+      body: JSON.stringify({ course: curso, series: serie, class_name: turma })
     });
     await abrirDetalhe(sessao.id);
   } catch (e) {
@@ -267,8 +259,6 @@ async function entrar() {
 }
 
 function iniciar() {
-  preencherAnos();
-
   $("entrar").addEventListener("click", entrar);
   $("senha").addEventListener("keydown", e => { if (e.key === "Enter") entrar(); });
   $("gerar").addEventListener("click", gerarPesquisa);
