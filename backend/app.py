@@ -30,6 +30,7 @@ TOKEN_TTL_SECONDS = int(os.getenv("NEXMIS_TOKEN_TTL", "28800"))
 
 COURSES = {"Desenvolvimento de Sistemas", "Eletrotécnica"}
 SERIES = {"1º Ano", "2º Ano", "3º Ano"}
+CLASSES = {"Turma A", "Turma B"}
 CATEGORIES = ["Esquerda", "Centro-esquerda", "Centro", "Centro-direita", "Direita"]
 CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # sem 0/O/1/I para evitar confusão
 CODE_LENGTH = 6
@@ -70,6 +71,7 @@ def init_db():
             course TEXT NOT NULL,
             series TEXT NOT NULL,
             year INTEGER NOT NULL,
+            class_name TEXT NOT NULL DEFAULT '',
             name TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'aberta',
             created_at TEXT NOT NULL,
@@ -79,9 +81,6 @@ def init_db():
         -- O código só precisa ser único enquanto a pesquisa está aberta.
         CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_codigo_aberta
             ON sessions(code) WHERE status = 'aberta';
-        -- Só pode existir uma pesquisa aberta por turma (curso + série + ano).
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_turma_aberta
-            ON sessions(course, series, year) WHERE status = 'aberta';
 
         CREATE TABLE IF NOT EXISTS session_responses (
             id TEXT PRIMARY KEY,
@@ -98,6 +97,14 @@ def init_db():
         CREATE UNIQUE INDEX IF NOT EXISTS idx_sr_unica_pessoa
             ON session_responses(session_id, LOWER(TRIM(name)));
         """)
+        # Migração: bancos criados na versão com "ano" ganham a coluna class_name.
+        cols = [r["name"] for r in db.execute("PRAGMA table_info(sessions)")]
+        if "class_name" not in cols:
+            db.execute("ALTER TABLE sessions ADD COLUMN class_name TEXT NOT NULL DEFAULT ''")
+        db.execute("DROP INDEX IF EXISTS idx_sessions_turma_aberta")
+        # Só pode existir uma pesquisa aberta por turma (curso + série + turma).
+        db.execute("""CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_turma_aberta_v2
+            ON sessions(course, series, class_name) WHERE status = 'aberta'""")
 
 
 init_db()
@@ -185,7 +192,7 @@ class LoginIn(BaseModel):
 class SessionIn(BaseModel):
     course: str
     series: str
-    year: int = Field(ge=2000, le=2100)
+    class_name: str
 
 
 class ConcludeIn(BaseModel):
@@ -198,8 +205,8 @@ class ResponseIn(BaseModel):
 
 
 # ---------------------------------------------------------------- utilitários de pesquisa
-def session_name(course: str, series: str, year: int) -> str:
-    return f"{course} - {series} - {year}"
+def session_name(course: str, series: str, class_name: str) -> str:
+    return f"{course} - {series} - {class_name}"
 
 
 def new_code(db) -> str:
@@ -240,6 +247,7 @@ def session_public(row) -> dict:
         "course": row["course"],
         "series": row["series"],
         "year": row["year"],
+        "class_name": row["class_name"],
         "name": row["name"],
         "status": row["status"],
         "created_at": row["created_at"],
@@ -278,7 +286,7 @@ def open_survey(code: str):
         row = db.execute("SELECT * FROM sessions WHERE code = ? AND status = 'aberta'", (code,)).fetchone()
     if not row:
         raise HTTPException(status_code=404, detail="Código inválido ou pesquisa já encerrada.")
-    return {"code": row["code"], "name": row["name"], "course": row["course"], "series": row["series"], "year": row["year"]}
+    return {"code": row["code"], "name": row["name"], "course": row["course"], "series": row["series"], "year": row["year"], "class_name": row["class_name"]}
 
 
 @app.post("/api/pesquisa/{code}/respostas")
@@ -336,22 +344,25 @@ def create_session(data: SessionIn, _: bool = Depends(admin_guard)):
         raise HTTPException(status_code=400, detail="Curso inválido.")
     if data.series not in SERIES:
         raise HTTPException(status_code=400, detail="Série inválida.")
+    if data.class_name not in CLASSES:
+        raise HTTPException(status_code=400, detail="Turma inválida.")
 
     with get_db() as db:
         # Se já existe uma pesquisa aberta para a turma, retoma em vez de duplicar.
         existing = db.execute(
-            "SELECT * FROM sessions WHERE course = ? AND series = ? AND year = ? AND status = 'aberta'",
-            (data.course, data.series, data.year),
+            "SELECT * FROM sessions WHERE course = ? AND series = ? AND class_name = ? AND status = 'aberta'",
+            (data.course, data.series, data.class_name),
         ).fetchone()
         if existing:
             return {**session_public(existing), "resumed": True}
 
         session_id = secrets.token_hex(12)
         code = new_code(db)
-        name = session_name(data.course, data.series, data.year)
+        name = session_name(data.course, data.series, data.class_name)
+        year = datetime.now(_fuso_brasil()).year  # guardado só como registro; não é escolhido pelo analista
         db.execute(
-            "INSERT INTO sessions (id, code, course, series, year, name, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'aberta', ?)",
-            (session_id, code, data.course, data.series, data.year, name, now_iso()),
+            "INSERT INTO sessions (id, code, course, series, year, class_name, name, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'aberta', ?)",
+            (session_id, code, data.course, data.series, year, data.class_name, name, now_iso()),
         )
         row = db.execute("SELECT * FROM sessions WHERE id = ?", (session_id,)).fetchone()
     return {**session_public(row), "resumed": False}
@@ -457,7 +468,7 @@ def build_pdf(session: dict, stats: dict) -> bytes:
     info = [
         ("Curso", session["course"]),
         ("Série", session["series"]),
-        ("Ano", str(session["year"])),
+        ("Turma", session["class_name"]) if session.get("class_name") else ("Ano", str(session["year"])),
         ("Pesquisa iniciada em", format_date_br(session["created_at"])),
         ("Pesquisa concluída em", format_date_br(session["concluded_at"])),
         ("Total de respostas", str(stats["total_responses"])),
@@ -575,4 +586,3 @@ def static_pages(page: str):
     if target.is_file() and target.suffix.lower() in {".html", ".js", ".css", ".json", ".png", ".jpg", ".jpeg", ".svg", ".ico"}:
         return FileResponse(target)
     raise HTTPException(status_code=404)
-
