@@ -79,10 +79,9 @@ function etapaNome(mensagem = "") {
     <h1 class="titulo-questionario">Sua turma.</h1>
     <div class="linha"></div>
     <div class="identificacao">
-      TURMA: ${escaparHTML(pesquisa.name)}<br>
       CURSO: ${escaparHTML(pesquisa.course)}<br>
       SÉRIE: ${escaparHTML(pesquisa.series)}<br>
-      ANO: ${escaparHTML(pesquisa.year)}
+      TURMA: ${escaparHTML(pesquisa.class_name || pesquisa.year)}
     </div>
     <label for="nome">NOME</label>
     <input id="nome" type="text" maxlength="80" placeholder="Digite seu nome" autocomplete="off" value="${escaparHTML(nome)}">
