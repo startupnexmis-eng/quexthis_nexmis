@@ -31,7 +31,12 @@ async function api(url, options = {}) {
   let corpo = {};
   try { corpo = await resposta.json(); } catch {}
   if (!resposta.ok) {
-    const erro = new Error(typeof corpo.detail === "string" ? corpo.detail : "Não foi possível concluir a operação.");
+    let mensagem = typeof corpo.detail === "string" ? corpo.detail : "Não foi possível concluir a operação.";
+    // Respostas genéricas do FastAPI indicam que o servidor está rodando um app.py diferente do esperado.
+    if (resposta.status === 422 || resposta.status === 405 || corpo.detail === "Not Found") {
+      mensagem = "O servidor não reconheceu o pedido. Provavelmente o arquivo backend/app.py ainda está na versão antiga no GitHub/Render (erro " + resposta.status + ").";
+    }
+    const erro = new Error(mensagem);
     erro.status = resposta.status;
     throw erro;
   }
