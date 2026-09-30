@@ -1,0 +1,110 @@
+[
+  {
+    "pergunta": "Os meios de produção devem pertencer aos trabalhadores que os utilizam.",
+    "direcao": -1
+  },
+  {
+    "pergunta": "Um Estado hierárquico é o melhor para manter a ordem.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "As guerras não precisam ser justificadas para outros países.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "A religião deve desempenhar um papel no governo.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "Os impostos devem ser aumentados para os ricos para beneficiar os pobres.",
+    "direcao": -1
+  },
+  {
+    "pergunta": "As tarifas do comércio internacional são importantes para incentivar a produção local.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "A prostituição deve ser ilegal.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "Os regulamentos ambientais são essenciais.",
+    "direcao": -1
+  },
+  {
+    "pergunta": "Se aceitarmos os imigrantes, é importante que eles se integrem à nossa cultura.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "Educação de qualidade é um direito de todos.",
+    "direcao": -1
+  },
+  {
+    "pergunta": "Todas as pessoas — independentemente de fatores como cultura ou sexualidade — devem ser tratadas igualmente.",
+    "direcao": -1
+  },
+  {
+    "pergunta": "Um governo mundial unido seria benéfico para a humanidade.",
+    "direcao": -1
+  },
+  {
+    "pergunta": "Meus valores religiosos devem se espalhar o máximo possível.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "Independentemente das opiniões políticas, é importante estar do lado do seu país.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "O casamento entre pessoas do mesmo sexo deve ser legal.",
+    "direcao": -1
+  },
+  {
+    "pergunta": "A ação militar de nossa nação é frequentemente necessária para protegê-la.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "Seria melhor se os programas sociais fossem abolidos em favor da caridade privada.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "O sacrifício de algumas liberdades civis é necessário para nos proteger de atos de terrorismo.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "O aborto deve ser proibido na maioria ou em todos os casos.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "Utilitários básicos como estradas e eletricidade devem ser de propriedade pública.",
+    "direcao": -1
+  },
+  {
+    "pergunta": "O Estado deve garantir uma forte proteção dos direitos trabalhistas, mesmo quando isso aumentar os custos para as empresas.",
+    "direcao": -1
+  },
+  {
+    "pergunta": "Empresas privadas devem ter ampla liberdade para investir, contratar e administrar seus negócios com pouca interferência do Estado.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "A redução das desigualdades sociais deve ser uma das principais responsabilidades do governo.",
+    "direcao": -1
+  },
+  {
+    "pergunta": "A segurança pública deve priorizar leis mais rígidas e uma atuação firme das autoridades.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "O governo deve evitar interferências desnecessárias na economia e deixar que a concorrência organize grande parte do mercado.",
+    "direcao": 1
+  },
+  {
+    "pergunta": "A participação direta da população nas decisões políticas deve ser ampliada, inclusive por consultas e mecanismos de democracia participativa.",
+    "direcao": -1
+  },
+  {
+    "pergunta": "A preservação da ordem e das instituições tradicionais deve ter prioridade quando houver conflito com mudanças sociais rápidas.",
+    "direcao": 1
+  }
+]
