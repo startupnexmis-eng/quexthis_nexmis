@@ -6,7 +6,6 @@ const INTERVALO_ATUALIZACAO_MS = 4000;
 let sessaoAtual = null;   // pesquisa aberta/concluída exibida no detalhe
 let abaOrigem = "nova";   // de onde o analista abriu o detalhe (para o botão VOLTAR)
 let temporizador = null;
-let qrGeradoPara = null;
 
 const $ = id => document.getElementById(id);
 
@@ -53,7 +52,6 @@ function mostrarVista(nome) {
 function definirAba(aba) {
   pararAtualizacao();
   sessaoAtual = null;
-  qrGeradoPara = null;
   abaOrigem = aba;
   document.querySelectorAll("#abas button").forEach(b => b.classList.toggle("ativa", b.dataset.aba === aba));
   $("abas").classList.remove("hidden");
@@ -106,7 +104,7 @@ async function gerarPesquisa() {
   erro.textContent = "";
   const curso = $("curso").value, serie = $("serie").value, ano = Number($("ano").value);
   if (!curso || !serie || !ano) {
-    erro.textContent = "Selecione curso, série e ano antes de gerar o QR Code.";
+    erro.textContent = "Selecione curso, série e ano antes de gerar o código.";
     return;
   }
   const botao = $("gerar");
@@ -125,27 +123,11 @@ async function gerarPesquisa() {
 }
 
 /* ---------- detalhe ---------- */
-function urlDaPesquisa(codigo) {
+function urlDaPesquisa() {
   const url = new URL("pesquisa.html", location.href);
   url.search = "";
   url.hash = "";
-  url.searchParams.set("c", codigo);
   return url.toString();
-}
-
-function desenharQR(codigo) {
-  if (qrGeradoPara === codigo) return;
-  const caixa = $("qrBox");
-  caixa.innerHTML = "";
-  const link = urlDaPesquisa(codigo);
-  $("detLink").textContent = link;
-  if (typeof QRCode === "undefined") {
-    caixa.innerHTML = `<div class="qr-falha">Não foi possível carregar o gerador de QR Code. Use o código ao lado.</div>`;
-    qrGeradoPara = codigo;
-    return;
-  }
-  new QRCode(caixa, { text: link, width: 220, height: 220, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
-  qrGeradoPara = codigo;
 }
 
 function renderizarDetalhe(dados) {
@@ -162,7 +144,7 @@ function renderizarDetalhe(dados) {
 
   if (aberta) {
     $("detCodigo").textContent = dados.code;
-    desenharQR(dados.code);
+    $("detLink").textContent = urlDaPesquisa();
   }
 
   $("detResumo").innerHTML = dados.total_responses
@@ -192,7 +174,6 @@ async function abrirDetalhe(id) {
   $("erroDetalhe").textContent = "";
   $("confirmarConclusao").classList.add("hidden");
   $("senhaConclusao").value = "";
-  qrGeradoPara = null;
   const dados = await apiAdmin(`/api/admin/sessions/${encodeURIComponent(id)}`);
   $("abas").classList.add("hidden");
   mostrarVista("vistaDetalhe");
