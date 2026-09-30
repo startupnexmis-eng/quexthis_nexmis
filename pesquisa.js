@@ -33,7 +33,7 @@ function etapaCodigo(mensagem = "", valor = "") {
     <div class="kicker">01 — ACESSO À PESQUISA</div>
     <h1 class="titulo-questionario">Digite o código.</h1>
     <div class="linha"></div>
-    <p class="descricao curto">Leia o QR Code mostrado pelo analista ou digite o código da pesquisa da sua turma.</p>
+    <p class="descricao curto">Digite o código da pesquisa da sua turma, informado pelo analista.</p>
     <label for="codigo">CÓDIGO DA PESQUISA</label>
     <input id="codigo" class="campo-codigo" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC123" value="${escaparHTML(valor)}">
     <button id="entrarCodigo" type="button">ENTRAR NA PESQUISA →</button>
