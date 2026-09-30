@@ -12,8 +12,8 @@
 <header>
   <div class="logo">QUEXTHIS<small>QUESTIONÁRIO POLÍTICO</small></div>
   <nav>
-    <a href="index.html">INÍCIO</a>
-    <a href="resultado.html">ANÁLISES</a>
+    <a href="pesquisa.html">PESQUISA</a>
+    <a href="analista.html">ANALISTA</a>
   </nav>
 </header>
 
@@ -24,50 +24,23 @@
   <div class="linha"></div>
   <p class="descricao">
     Questionário de perspectivas políticas com 27 afirmações e respostas em escala de
-    concordância. Os resultados são apresentados de forma agregada por
-    curso, série e turma.
+    concordância. O analista abre a pesquisa de uma turma, a turma responde pelo QR Code
+    e os resultados são apresentados de forma agregada.
   </p>
   <div class="informacoes">
     <span>◈ 27 QUESTÕES</span>
-    <span>◈ ANÁLISE POR TURMA</span>
-    <span>◈ RESULTADO INDIVIDUAL</span>
+    <span>◈ ACESSO POR QR CODE</span>
+    <span>◈ RELATÓRIO EM PDF</span>
   </div>
 </section>
 
 <section class="card">
-  <div class="titulo-card">IDENTIFICAÇÃO</div>
-
-  <label for="nome">NOME</label>
-  <input id="nome" type="text" maxlength="80" placeholder="Digite seu nome">
-
-  <label for="curso">CURSO</label>
-  <select id="curso">
-    <option value="">Selecione seu curso</option>
-    <option>Desenvolvimento de Sistemas</option>
-    <option>Eletrotécnica</option>
-  </select>
-
-  <label for="serie">SÉRIE</label>
-  <select id="serie">
-    <option value="">Selecione sua série</option>
-    <option>1º Ano</option>
-    <option>2º Ano</option>
-    <option>3º Ano</option>
-  </select>
-
-  <label for="turma">TURMA</label>
-  <select id="turma">
-    <option value="">Selecione sua turma</option>
-    <option>Turma A</option>
-    <option>Turma B</option>
-  </select>
-
-  <button id="iniciar" type="button">INICIAR QUESTIONÁRIO →</button>
-  <div id="erro" class="erro" role="alert" aria-live="polite"></div>
-
+  <div class="titulo-card">ESCOLHA UMA ÁREA</div>
+  <a class="botao-link" href="analista.html">ÁREA DO ANALISTA →</a>
+  <a class="botao-link botao-secundario" href="pesquisa.html">RESPONDER A PESQUISA (CÓDIGO) →</a>
   <div class="aviso">
-    Responda de acordo com o seu próprio posicionamento. Não há respostas
-    certas ou erradas.
+    A área do analista exige senha. A pesquisa só abre com o código da turma,
+    exibido pelo analista em QR Code.
   </div>
 </section>
 </main>
@@ -76,7 +49,5 @@
   <span>PROGRAMA DO NEXMIS © 2026</span>
   <span>LITERACIA · ANÁLISE · CONHECIMENTO</span>
 </footer>
-<script src="api-config.js"></script>
-<script src="script.js"></script>
 </body>
 </html>

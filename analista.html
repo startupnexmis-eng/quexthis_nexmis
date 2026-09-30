@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXMIS | Analista</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Mono&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="logo">QUEXTHIS<small>QUESTIONÁRIO POLÍTICO</small></div>
+  <nav>
+    <a href="pesquisa.html">PESQUISA</a>
+    <a href="analista.html">ANALISTA</a>
+  </nav>
+</header>
+
+<main class="resultados-container">
+<section>
+  <div class="kicker">03 — ÁREA DO ANALISTA</div>
+  <h1>Turma.<br>Código.<br>Análise.</h1>
+  <div class="linha"></div>
+  <p class="descricao">
+    Escolha a turma, mostre o QR Code para os alunos e acompanhe o percentual das respostas.
+    Ao concluir, exporte o relatório em PDF. Os dados ficam guardados no histórico.
+  </p>
+</section>
+
+<section class="card">
+  <div id="loginAnalista">
+    <div class="titulo-card">ACESSO RESTRITO</div>
+    <p class="descricao curto">Digite a senha para acessar a área do analista.</p>
+    <label for="senha">SENHA</label>
+    <input id="senha" type="password" autocomplete="off" placeholder="Senha de acesso">
+    <button id="entrar" type="button">ENTRAR →</button>
+    <div id="erroLogin" class="erro" role="alert" aria-live="polite"></div>
+  </div>
+
+  <div id="painel" class="hidden">
+    <div class="abas" id="abas">
+      <button type="button" data-aba="nova" class="ativa">NOVA PESQUISA</button>
+      <button type="button" data-aba="historico">HISTÓRICO</button>
+    </div>
+
+    <!-- NOVA PESQUISA -->
+    <div id="vistaNova">
+      <div class="titulo-card">SELECIONE A TURMA</div>
+      <div class="filtros">
+        <div>
+          <label for="curso">CURSO</label>
+          <select id="curso">
+            <option value="">Selecione</option>
+            <option>Desenvolvimento de Sistemas</option>
+            <option>Eletrotécnica</option>
+          </select>
+        </div>
+        <div>
+          <label for="serie">SÉRIE</label>
+          <select id="serie">
+            <option value="">Selecione</option>
+            <option>1º Ano</option>
+            <option>2º Ano</option>
+            <option>3º Ano</option>
+          </select>
+        </div>
+        <div>
+          <label for="ano">ANO</label>
+          <select id="ano"></select>
+        </div>
+      </div>
+      <button id="gerar" type="button">GERAR QR CODE →</button>
+      <div id="erroNova" class="erro" role="alert" aria-live="polite"></div>
+
+      <div id="blocoAndamento" class="hidden">
+        <div class="titulo-card espaco-topo">PESQUISAS EM ANDAMENTO</div>
+        <div id="listaAndamento"></div>
+      </div>
+    </div>
+
+    <!-- HISTÓRICO -->
+    <div id="vistaHistorico" class="hidden">
+      <div class="titulo-card">PESQUISAS CONCLUÍDAS</div>
+      <div id="listaHistorico"></div>
+    </div>
+
+    <!-- DETALHE (pesquisa aberta ou concluída) -->
+    <div id="vistaDetalhe" class="hidden">
+      <div class="grupo-cabecalho">
+        <div>
+          <div class="resultado-titulo" id="detNome"></div>
+          <div class="resultado-legenda" id="detStatus"></div>
+        </div>
+      </div>
+
+      <div id="blocoAberta" class="hidden">
+        <div class="qr-area">
+          <div class="qr-box" id="qrBox"></div>
+          <div class="qr-info">
+            <div class="resultado-legenda">CÓDIGO DA PESQUISA</div>
+            <div class="codigo-grande" id="detCodigo"></div>
+            <div class="resultado-legenda">Os alunos leem o QR Code ou digitam o código em:</div>
+            <div class="link-pesquisa" id="detLink"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="detResumo"></div>
+      <div class="resultado-legenda" id="detAtualizacao"></div>
+
+      <div id="acoesAberta" class="hidden">
+        <button id="abrirConclusao" type="button">CONCLUIR PESQUISA</button>
+        <div id="confirmarConclusao" class="confirmacao hidden">
+          <p class="descricao curto">Ao concluir, o código deixa de funcionar e ninguém mais poderá responder. Digite a senha para confirmar.</p>
+          <label for="senhaConclusao">SENHA</label>
+          <input id="senhaConclusao" type="password" autocomplete="off" placeholder="Senha de acesso">
+          <div class="acoes-admin">
+            <button id="confirmarBtn" type="button">CONFIRMAR CONCLUSÃO</button>
+            <button id="cancelarConclusao" type="button" class="botao-secundario">CONTINUAR PESQUISA</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="acoesConcluida" class="hidden">
+        <button id="exportarPdf" type="button">EXPORTAR PDF</button>
+      </div>
+      <div id="erroDetalhe" class="erro" role="alert" aria-live="polite"></div>
+      <button id="voltar" type="button" class="botao-secundario">← VOLTAR</button>
+    </div>
+
+    <button id="sair" type="button" class="botao-secundario">SAIR</button>
+  </div>
+</section>
+</main>
+
+<footer>
+  <span>PROGRAMA DO NEXMIS © 2026</span>
+  <span>LITERACIA · ANÁLISE · CONHECIMENTO</span>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>window.QRCode||document.write('<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"><\/script>')</script>
+<script src="api-config.js"></script>
+<script src="comum.js"></script>
+<script src="analista.js"></script>
+</body>
+</html>
